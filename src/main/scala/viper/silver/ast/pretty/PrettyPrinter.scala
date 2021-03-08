@@ -754,6 +754,8 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
       brackets(show(in) <> char (',') <+> show(ex))
     case WildcardPerm() =>
       "wildcard"
+    case SWildcardPerm() =>
+      "sWildcard"
     case FullPerm() =>
       "write"
     case NoPerm() =>

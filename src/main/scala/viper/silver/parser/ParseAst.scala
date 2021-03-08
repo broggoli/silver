@@ -656,6 +656,7 @@ sealed trait PSimpleLiteral extends PExp {
 case class PIntLit(i: BigInt)(val pos: (Position, Position) = (NoPosition, NoPosition)) extends PSimpleLiteral{
   typ = Int
 }
+// TODO: what is this boolLit used for?
 case class PResultLit()(val pos: (Position, Position)) extends PSimpleLiteral
 case class PBoolLit(b: Boolean)(val pos: (Position, Position)) extends PSimpleLiteral{
   typ = Bool
@@ -771,6 +772,7 @@ case class PCurPerm(res: PResourceAccess)(val pos: (Position, Position)) extends
 case class PNoPerm()(val pos: (Position, Position)) extends PSimpleLiteral{typ = Perm}
 case class PFullPerm()(val pos: (Position, Position)) extends PSimpleLiteral{typ = Perm}
 case class PWildcard()(val pos: (Position, Position)) extends PSimpleLiteral{typ = Perm}
+case class PSWildcard()(val pos: (Position, Position)) extends PSimpleLiteral{typ = Perm}
 case class PEpsilon()(val pos: (Position, Position)) extends PSimpleLiteral{typ = Perm}
 case class PAccPred(loc: PLocationAccess, perm: PExp)(val pos: (Position, Position)) extends POpApp {
   override val opName = "acc"
@@ -1261,6 +1263,7 @@ object Nodes {
       case PNoPerm() => Nil
       case PFullPerm() => Nil
       case PWildcard() => Nil
+      case PSWildcard() => Nil
       case PEpsilon() => Nil
       case PAccPred(loc, perm) => Seq(loc, perm)
       case PEmptySeq(_) => Nil
