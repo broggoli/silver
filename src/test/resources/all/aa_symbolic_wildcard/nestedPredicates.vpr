@@ -1,0 +1,113 @@
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+//:: IgnoreFile(/silicon/issue/40/)
+
+  field next: Ref
+  field value: Int
+  predicate valid(this: Ref) {
+    acc(this.next, sWildcard) &&
+    acc(this.value, sWildcard) &&
+    (((this.next) != (null)) ==> acc(valid(this.next), sWildcard))
+  }
+  method testNestingUnfold(this: Ref)
+    requires acc(valid(this), sWildcard)
+  {
+    unfold acc(valid(this), sWildcard)
+    assert ((this) != (this.next))
+    if (((this.next) != (null))) {
+      unfold acc(valid(this.next), sWildcard)
+      assert ((this.next) != (this.next.next))
+      assert ((this) != (this.next.next))
+    }
+  }
+  method testNestingFold(this: Ref)
+    requires acc(this.next, sWildcard) && acc(this.value, sWildcard)
+    requires acc(this.next.next, sWildcard)
+    requires acc(this.next.value, sWildcard)
+    requires ((this.next) != (null)) && ((this.next.next) != (null))
+    requires acc(valid(this.next.next), sWildcard)
+  {
+    fold acc(valid(this.next), sWildcard)
+    assert ((this.next) != (this.next.next))
+    fold acc(valid(this), sWildcard)
+    assert ((this) != (this.next))
+    assert ((this) != (this.next.next))
+  }
+  method testNestingUnfolding(this: Ref)
+    requires acc(valid(this), write)
+  {
+    assert ((this) != ((unfolding acc(valid(this), write) in this.next)))
+    if ((((unfolding acc(valid(this), sWildcard) in this.next)) != (null))) {
+      assert (((unfolding acc(valid(this), sWildcard) in this.next)) != ((unfolding acc(valid(this), sWildcard) in (unfolding acc(valid(this.next), sWildcard) in this.next.next))))
+      assert ((this) != ((unfolding acc(valid(this), sWildcard) in (unfolding acc(valid(this.next), sWildcard) in this.next.next))))
+    }
+  }
+  predicate p(this: Ref) { acc(this.next, sWildcard) && acc(this.value, sWildcard) && (((this.next) != (null)) ==> acc(q(this.next), sWildcard)) }
+  predicate q(this: Ref) { acc(this.next, sWildcard) && acc(this.value, sWildcard) && (((this.next) != (null)) ==> acc(p(this.next), sWildcard)) }
+  method testNestingUnfoldTwo(this: Ref)
+    requires acc(p(this), sWildcard)
+  {
+    unfold acc(p(this), sWildcard)
+    //:: ExpectedOutput(assert.failed:assertion.false)
+    assert ((this) != (this.next))
+    if (((this.next) != (null))) {
+      unfold acc(q(this.next), sWildcard)
+      //:: ExpectedOutput(assert.failed:assertion.false)
+      assert ((this.next) != (this.next.next))
+      assert ((this) != (this.next.next))
+    }
+  }
+  method testNestingFoldTwo(this: Ref)
+    requires acc(this.next, sWildcard) && acc(this.value, sWildcard)
+    requires acc(this.next.next, sWildcard)
+    requires acc(this.next.value, sWildcard)
+    requires ((this.next) != (null)) && ((this.next.next) != (null))
+    requires acc(p(this.next.next), sWildcard)
+  {
+    fold acc(q(this.next), sWildcard)
+    //:: ExpectedOutput(assert.failed:assertion.false)
+    assert ((this) != (this.next))
+    //:: ExpectedOutput(assert.failed:assertion.false)
+    assert ((this.next) != (this.next.next))
+    //:: ExpectedOutput(assert.failed:assertion.false)
+    assert ((this) != (this.next.next))
+  }
+  method testNestingFoldThree(this: Ref)
+    requires acc(this.next, sWildcard) && acc(this.value, sWildcard)
+    requires acc(this.next.next, sWildcard)
+    requires acc(this.next.value, sWildcard)
+    requires ((this.next) != (null)) && ((this.next.next) != (null))
+    requires acc(p(this.next.next), sWildcard)
+  {
+    fold acc(q(this.next), sWildcard)
+    fold acc(p(this), sWildcard)
+    assert ((this) != (this.next))
+    //:: ExpectedOutput(assert.failed:assertion.false)
+    assert ((this.next) != (this.next.next))
+    assert ((this) != (this.next.next))
+  }
+  method testNestingUnfoldingTwo(this: Ref)
+    requires acc(p(this), sWildcard)
+  {
+    //:: ExpectedOutput(assert.failed:assertion.false)
+    assert ((this) != ((unfolding acc(p(this), sWildcard) in this.next)))
+    if ((((unfolding acc(p(this), sWildcard) in this.next)) != (null))) {
+      //:: ExpectedOutput(assert.failed:assertion.false)
+      assert (((unfolding acc(p(this), sWildcard) in this.next)) != ((unfolding acc(p(this), sWildcard) in (unfolding acc(q(this.next), sWildcard) in this.next.next))))
+      assert ((this) != ((unfolding acc(p(this), sWildcard) in (unfolding acc(q(this.next), sWildcard) in this.next.next))))
+    }
+  }
+  method testNestingUnfoldingPrecondition(this: Ref, x: Ref)
+    requires acc(valid(this), sWildcard) && (unfolding acc(valid(this), sWildcard) in ((this.next) == (x)))
+  {
+    assert ((this) != (x))
+  }
+  function getNext(this: Ref): Ref
+    requires acc(valid(this), sWildcard)
+  { (unfolding acc(valid(this), sWildcard) in this.next) }
+  method testNestingUnfoldingPostcondition(this: Ref, x: Ref)
+    requires acc(valid(this), sWildcard)
+    ensures acc(valid(this), sWildcard) && (unfolding acc(valid(this), sWildcard) in true)
+  {
+  }

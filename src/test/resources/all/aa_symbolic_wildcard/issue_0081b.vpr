@@ -1,0 +1,23 @@
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+field f: Ref
+
+method test01(xs: Set[Ref], ys: Set[Ref])
+  requires forall x: Ref :: x in xs ==> acc(x.f, sWildcard)
+  requires forall x: Ref :: x in ys ==> acc(x.f, sWildcard)
+  ensures forall x: Ref :: x in (xs union ys) ==> acc(x.f, sWildcard)
+{}
+
+method test02(xs: Set[Ref], y: Ref, z: Ref)
+  requires forall x: Ref :: x in xs ==> acc(x.f, sWildcard)
+  requires z in xs
+  ensures forall x: Ref :: x in xs ==> acc(x.f, sWildcard)
+{
+  if (y in xs) {
+    exhale acc(y.f, sWildcard)
+  }
+
+  exhale forall x: Ref :: x in (xs setminus Set(y)) ==> acc(x.f, sWildcard)
+  exhale forall x: Ref :: x in xs ==> acc(x.f, sWildcard)
+}
