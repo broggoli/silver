@@ -61,6 +61,17 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
     s
   })
 
+  /** checks that formalReturns of method calls are assignable to targets, and arguments are assignable to formalArgs */
+  lazy val permUsedWithSWildcard: Set[ResourceAccess] = {
+      val collected = 
+        methods.map(m=> m.permUsedWithSWildcard) ++
+        functions.map(f => f.permUsedWithSWildcard) ++
+        predicates.map(p => p.permUsedWithSWildcard)
+      val unzipped = collected.unzip
+      val perm_uses = unzipped._1.reduce( (x, y) => x ++ y)
+      val sWildcard_uses = unzipped._1.reduce((x, y) => x ++ y)
+      perm_uses & sWildcard_uses
+  }
   lazy val checkAbstractPredicatesUsage: Seq[ConsistencyError] =
     (predicates ++ functions ++ methods) flatMap checkAbstractPredicatesUsageIn
 
@@ -338,7 +349,24 @@ case class Predicate(name: String, formalArgs: Seq[LocalVarDecl], body: Option[E
       }
       errors
     }
+  lazy val permUsedWithSWildcard: (Set[ResourceAccess], Set[ResourceAccess]) = {
+    var s = Set.empty[ResourceAccess]
+    var wc = Set.empty[ResourceAccess]
 
+    body match {
+      case None => /* Nothing to do */
+      case Some(actualBody) =>
+        for (cp@CurrentPerm(res) <- actualBody) {
+          s += res;
+        }
+        for (ap@AccessPredicate(loc, swc@SWildcardPerm()) <- actualBody) {
+          wc += loc; 
+        }
+    }
+    ( s, wc )
+    // val intersection = s & wc;
+    // intersection
+  } 
   val scopedDecls: Seq[Declaration] = formalArgs
   def isAbstract = body.isEmpty
 
@@ -369,6 +397,31 @@ case class Method(name: String, formalArgs: Seq[LocalVarDecl], formalReturns: Se
         Vector(Inhale(FalseLit()())()),
         Vector.empty
       )()
+  }
+
+  lazy val permUsedWithSWildcard: (Set[ResourceAccess], Set[ResourceAccess]) = {
+    var s = Set.empty[ResourceAccess]
+    var wc = Set.empty[ResourceAccess]
+
+    body match {
+      case None => /* Nothing to do */
+      case Some(actualBody) =>
+        for (cp@CurrentPerm(res) <- actualBody) {
+          s += res;
+        }
+        for (ap@AccessPredicate(loc, swc@SWildcardPerm()) <- actualBody) {
+          wc += loc; 
+        }
+    }
+    for (cp@CurrentPerm(res) <- (pres++posts)) {
+      s += res;
+    }
+    for (ap@AccessPredicate(loc, swc@SWildcardPerm()) <- (pres++posts)) {
+      wc += loc; 
+    }
+    (s, wc)
+    // val intersection = s & wc;
+    // intersection
   }
 
   def deepCollectInBody[A](f: PartialFunction[Node, A]): Seq[A] = body match {
@@ -443,7 +496,31 @@ case class Function(name: String, formalArgs: Seq[LocalVarDecl], typ: Type, pres
       })
       errors
     }
+  
+  lazy val permUsedWithSWildcard: (Set[ResourceAccess], Set[ResourceAccess]) = {
+    var s = Set.empty[ResourceAccess]
+    var wc = Set.empty[ResourceAccess]
 
+    body match {
+      case None => /* Nothing to do */
+      case Some(actualBody) =>
+        for (cp@CurrentPerm(res) <- actualBody) {
+          s += res;
+        }
+        for (ap@AccessPredicate(loc, swc@SWildcardPerm()) <- actualBody) {
+          wc += loc; 
+        }
+    }
+    for (cp@CurrentPerm(res) <- (pres++posts)) {
+      s += res;
+    }
+    for (ap@AccessPredicate(loc, swc@SWildcardPerm()) <- (pres++posts)) {
+      wc += loc; 
+    }
+    (s, wc)
+    // val intersection = s & wc;
+    // intersection
+  }
   val scopedDecls: Seq[Declaration] = formalArgs
   /**
    * The result variable of this function (without position or info).
