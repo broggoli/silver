@@ -656,7 +656,6 @@ sealed trait PSimpleLiteral extends PExp {
 case class PIntLit(i: BigInt)(val pos: (Position, Position) = (NoPosition, NoPosition)) extends PSimpleLiteral{
   typ = Int
 }
-// TODO: what is this boolLit used for?
 case class PResultLit()(val pos: (Position, Position)) extends PSimpleLiteral
 case class PBoolLit(b: Boolean)(val pos: (Position, Position)) extends PSimpleLiteral{
   typ = Bool

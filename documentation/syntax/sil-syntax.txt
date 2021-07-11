@@ -202,8 +202,8 @@ exp ::=
 	"none"      |             // no permission literal
 	"write"     |             // full permission literal
 	"epsilon"   |             // epsilon permission literal
-	"wildcard"  |             // wildcard permission            	// wildcard permission
-	"sWildcard" |			  // symbolic wildcard permission
+	"wildcard"  |             // wildcard permission
+	"sWildcard" |			  // abstract wildcard permission
 	
 	"perm" "(" loc-access ")" | // current permission
 	                            //  of given location

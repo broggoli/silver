@@ -185,7 +185,6 @@ object Expressions {
         }
         // Conditions for the current node.
         val conds = n match {
-          // TODO: What does this do?
           case f@FieldAccess(rcv, _) => List(NeCmp(rcv, NullLit()(p))(p), FieldAccessPredicate(f, WildcardPerm()(p))(p))
           case f: FuncApp => prog.findFunction(f.funcname).pres
           case Div(_, q) => List(NeCmp(q, IntLit(0)(p))(p))

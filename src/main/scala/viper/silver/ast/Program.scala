@@ -61,7 +61,10 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
     s
   })
 
-  /** checks that formalReturns of method calls are assignable to targets, and arguments are assignable to formalArgs */
+  /** 
+    * Gathers all locations on which there is at least one abstract wildcard used 
+    * and a permission operation is used on the same location
+  */
   lazy val permUsedWithSWildcard: Set[ResourceAccess] = {
       val collected = 
         methods.map(m=> m.permUsedWithSWildcard) ++
@@ -349,6 +352,12 @@ case class Predicate(name: String, formalArgs: Seq[LocalVarDecl], body: Option[E
       }
       errors
     }
+  
+  
+  /** 
+    * Gathers all locations on which there is at least one abstract wildcard used 
+    * and a permission operation is used on the same location
+  */
   lazy val permUsedWithSWildcard: (Set[ResourceAccess], Set[ResourceAccess]) = {
     var s = Set.empty[ResourceAccess]
     var wc = Set.empty[ResourceAccess]
@@ -364,8 +373,6 @@ case class Predicate(name: String, formalArgs: Seq[LocalVarDecl], body: Option[E
         }
     }
     ( s, wc )
-    // val intersection = s & wc;
-    // intersection
   } 
   val scopedDecls: Seq[Declaration] = formalArgs
   def isAbstract = body.isEmpty
@@ -399,6 +406,11 @@ case class Method(name: String, formalArgs: Seq[LocalVarDecl], formalReturns: Se
       )()
   }
 
+  
+  /** 
+    * Gathers all locations on which there is at least one abstract wildcard used 
+    * and a permission operation is used on the same location
+  */
   lazy val permUsedWithSWildcard: (Set[ResourceAccess], Set[ResourceAccess]) = {
     var s = Set.empty[ResourceAccess]
     var wc = Set.empty[ResourceAccess]
@@ -497,6 +509,11 @@ case class Function(name: String, formalArgs: Seq[LocalVarDecl], typ: Type, pres
       errors
     }
   
+  
+  /** 
+    * Gathers all locations on which there is at least one abstract wildcard used 
+    * and a permission operation is used on the same location
+  */
   lazy val permUsedWithSWildcard: (Set[ResourceAccess], Set[ResourceAccess]) = {
     var s = Set.empty[ResourceAccess]
     var wc = Set.empty[ResourceAccess]
@@ -518,8 +535,6 @@ case class Function(name: String, formalArgs: Seq[LocalVarDecl], typ: Type, pres
       wc += loc; 
     }
     (s, wc)
-    // val intersection = s & wc;
-    // intersection
   }
   val scopedDecls: Seq[Declaration] = formalArgs
   /**

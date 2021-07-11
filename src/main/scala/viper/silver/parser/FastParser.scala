@@ -927,7 +927,6 @@ object FastParser {
 
   def perm[_: P]: P[PExp] =
     P(FP(keyword("none")).map{ case (pos, _) => PNoPerm()(pos)} |
-      // TODO: What happens here?
       FP(keyword("wildcard")).map{ case (pos, _) => PWildcard()(pos)} |
       FP(keyword("sWildcard")).map{ case (pos, _) => PSWildcard()(pos)} |
       FP(keyword("write")).map{ case (pos, _) => PFullPerm()(pos)} |
