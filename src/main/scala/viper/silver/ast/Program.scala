@@ -62,18 +62,21 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
   })
 
   /** 
-    * Gathers all locations on which there is at least one abstract wildcard used 
-    * and a permission operation is used on the same location
+    * Gathers all field on which there is at least one abstract wildcard used 
+    * and a permission operation is used on the same field
   */
-  lazy val permUsedWithSWildcard: Set[ResourceAccess] = {
+  lazy val permUsedWithSWildcard: Set[Resource] = {
       val collected = 
         methods.map(m=> m.permUsedWithSWildcard) ++
         functions.map(f => f.permUsedWithSWildcard) ++
         predicates.map(p => p.permUsedWithSWildcard)
       val unzipped = collected.unzip
       val perm_uses = unzipped._1.reduce( (x, y) => x ++ y)
-      val sWildcard_uses = unzipped._1.reduce((x, y) => x ++ y)
-      perm_uses & sWildcard_uses
+      val sWildcard_uses = unzipped._2.reduce((x, y) => x ++ y)
+
+      val perm_field_uses: Set[Resource]  = perm_uses.map( x => x.res(this))
+      val sWildcard_field_uses: Set[Resource] = sWildcard_uses.map( x=> x.res(this))
+      perm_field_uses & sWildcard_field_uses
   }
   lazy val checkAbstractPredicatesUsage: Seq[ConsistencyError] =
     (predicates ++ functions ++ methods) flatMap checkAbstractPredicatesUsageIn
